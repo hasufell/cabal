@@ -11,15 +11,17 @@ import Test.QuickCheck       (Arbitrary (..), Gen, Property, choose, counterexam
 import Test.Tasty            (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
 
-import Distribution.FieldGrammar.Described (Described (..), GrammarRegex (..), reComma, reSpacedComma, reSpacedList)
+import Distribution.FieldGrammar.Described
+       (Described (..), GrammarRegex (..), reComma, reSpacedComma, reSpacedList)
 import Distribution.Parsec                 (eitherParsec)
 import Distribution.Pretty                 (prettyShow)
 
 import qualified Distribution.Utils.CharSet as CS
 
-import Distribution.Client.IndexUtils.IndexState (RepoIndexState, TotalIndexState)
-import Distribution.Client.IndexUtils.Timestamp  (Timestamp)
-import Distribution.Client.Types                 (RepoName)
+import Distribution.Client.IndexUtils.ActiveRepos (ActiveRepos)
+import Distribution.Client.IndexUtils.IndexState  (RepoIndexState, TotalIndexState)
+import Distribution.Client.IndexUtils.Timestamp   (Timestamp)
+import Distribution.Client.Types                  (RepoName)
 
 import qualified RERE         as RE
 import qualified RERE.CharSet as RE
@@ -33,6 +35,7 @@ tests = testGroup "Described"
     , testDescribed (Proxy :: Proxy RepoIndexState)
     , testDescribed (Proxy :: Proxy TotalIndexState)
     , testDescribed (Proxy :: Proxy RepoName)
+    , testDescribed (Proxy :: Proxy ActiveRepos)
     ]
 
 -------------------------------------------------------------------------------
@@ -132,12 +135,20 @@ convert = go id . vacuous where
     go _ RESpaces1          = RE.ch_ ' ' RE.\/ "  " RE.\/ "\n"
 
     go f (RECommaList r)    = go f (expandedCommaList r)
+    go f (RECommaNonEmpty r)= go f (expandedCommaNonEmpty r)
     go f (REOptCommaList r) = go f (expandedOptCommaList r)
 
     go _ RETodo             = RE.Null
 
 expandedCommaList :: GrammarRegex a -> GrammarRegex a
 expandedCommaList = REUnion . expandedCommaList'
+
+expandedCommaNonEmpty :: GrammarRegex a -> GrammarRegex a
+expandedCommaNonEmpty r = REUnion
+    [ REMunch1 reSpacedComma r
+    , reComma <> RESpaces <> REMunch1 reSpacedComma r
+    , REMunch1 reSpacedComma r <> RESpaces <> reComma
+    ]
 
 expandedCommaList' :: GrammarRegex a -> [GrammarRegex a]
 expandedCommaList' r =
