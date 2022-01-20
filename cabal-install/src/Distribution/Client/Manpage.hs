@@ -35,6 +35,7 @@ import Distribution.Simple.Utils
 import qualified Distribution.Verbosity as Verbosity
 import System.IO                        (hClose, hPutStr)
 import System.Environment               (lookupEnv)
+import System.FilePath                  (takeFileName)
 
 import qualified System.Process as Process
 
@@ -81,11 +82,13 @@ manpageCmd pname commands flags
         unless (ec1 == ExitSuccess) $ exitWith ec1
 
         pager <- fromMaybe "less" <$> lookupEnv "PAGER"
+        -- 'less' is borked with color sequences otherwise
+        let pagerArgs = if takeFileName pager == "less" then ["-R"] else []
         -- Pipe output of @nroff@ into @less@
         (Just inLess, _, _, procLess) <- createProcessWithEnv
           Verbosity.normal
           pager
-          []
+          pagerArgs
           Nothing  -- Inherit working directory
           Nothing  -- Inherit environment
           Process.CreatePipe  -- in
