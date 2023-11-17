@@ -197,10 +197,13 @@ updateRepo verbosity _updateFlags repoCtxt (repo, indexState) = do
       -- NB: always update the timestamp, even if we didn't actually
       -- download anything
       writeIndexTimestamp index indexState
-      ce <- if repoContextIgnoreExpiry repoCtxt
-              then Just `fmap` getCurrentTime
-              else return Nothing
-      updated <- Sec.uncheckClientErrors $ Sec.checkForUpdates repoSecure ce
+      -- typically we get the current time to check expiry against
+      -- but if the flag is set, we don't.
+      updated <- do
+        now <- case repoContextIgnoreExpiry repoCtxt of
+                   False -> Just <$> getCurrentTime
+                   True  -> pure Nothing
+        Sec.uncheckClientErrors $ Sec.checkForUpdates repoSecure now
 
       let rname = remoteRepoName (repoRemote repo)
 

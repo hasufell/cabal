@@ -3,3 +3,6 @@ packages: cabal-install/
 tests: False
 benchmarks: False
 optimization: True
+constraints: Cabal-syntax < 3.7,
+             Win32 >= 2.8
+allow-newer: base
