@@ -199,10 +199,11 @@ updateRepo verbosity _updateFlags repoCtxt (repo, indexState) = do
       writeIndexTimestamp index indexState
       -- typically we get the current time to check expiry against
       -- but if the flag is set, we don't.
-      now <- case repoContextIgnoreExpiry repoCtxt of
-                 False -> Just <$> getCurrentTime
-                 True  -> pure Nothing
-      updated <- Sec.uncheckClientErrors $ Sec.checkForUpdates repoSecure now
+      updated <- do
+        now <- case repoContextIgnoreExpiry repoCtxt of
+                   False -> Just <$> getCurrentTime
+                   True  -> pure Nothing
+        Sec.uncheckClientErrors $ Sec.checkForUpdates repoSecure now
 
       let rname = remoteRepoName (repoRemote repo)
 

@@ -17,6 +17,8 @@ tests: True
 -- avoiding extra dependencies
 constraints: rere -rere-cfg
 constraints: these -assoc
+constraints: Cabal-syntax < 3.7,
+             Win32 >= 2.8
 
 write-ghc-environment-files: never
 
