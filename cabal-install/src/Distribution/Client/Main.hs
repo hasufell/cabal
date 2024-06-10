@@ -128,6 +128,7 @@ import qualified Distribution.Client.CmdFreeze as CmdFreeze
 import qualified Distribution.Client.CmdHaddock as CmdHaddock
 import qualified Distribution.Client.CmdHaddockProject as CmdHaddockProject
 import qualified Distribution.Client.CmdInstall as CmdInstall
+import qualified Distribution.Client.CmdSandbox as CmdSandbox
 import Distribution.Client.CmdLegacy
 import qualified Distribution.Client.CmdListBin as CmdListBin
 import qualified Distribution.Client.CmdOutdated as CmdOutdated
@@ -339,7 +340,8 @@ mainWorker args = do
       CommandHelp help -> printGlobalHelp help
       CommandList opts -> printOptionsList opts
       CommandErrors errs -> printErrors errs
-      CommandReadyToGo (globalFlags, commandParse) ->
+      CommandReadyToGo (globalFlags', commandParse) -> do
+        globalFlags <- CmdSandbox.updateGlobalFlags Nothing globalFlags'
         case commandParse of
           _
             | fromFlagOrDefault False (globalVersion globalFlags) ->
@@ -437,6 +439,7 @@ mainWorker args = do
       , hiddenCmd actAsSetupCommand actAsSetupAction
       , hiddenCmd manpageCommand (manpageAction commandSpecs)
       , regularCmd CmdListBin.listbinCommand CmdListBin.listbinAction
+      , regularCmd CmdSandbox.sandboxCommand CmdSandbox.sandboxAction
       ]
         ++ concat
           [ newCmd CmdConfigure.configureCommand CmdConfigure.configureAction

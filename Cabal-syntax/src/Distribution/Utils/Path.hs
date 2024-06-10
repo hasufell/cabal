@@ -30,6 +30,7 @@ module Distribution.Utils.Path
   , Tix
   , Tmp
   , Response
+  , Sandbox
 
     -- * Symbolic paths
   , RelativePath
@@ -499,3 +500,9 @@ data Tmp
 --
 -- See Note [Symbolic paths] in Distribution.Utils.Path.
 data Response
+
+-- | Abstract directory: directory for response files.
+--
+-- See Note [Symbolic paths] in Distribution.Utils.Path.
+data Sandbox
+
