@@ -90,6 +90,9 @@ module Distribution.Client.Setup
   , registerCommand
   , liftOptions
   , yesNoOpt
+  , reqArgFlag
+  , relevantConfigValuesText
+  , optionVerbosity
   ) where
 
 import Distribution.Client.Compat.Prelude hiding (get)
@@ -267,6 +270,7 @@ globalCommand commands =
               [ "help"
               , "update"
               , "install"
+              , "sandbox"
               , "fetch"
               , "list"
               , "info"
@@ -379,6 +383,7 @@ globalCommand commands =
                 , addCmd "haddock"
                 , addCmd "haddock-project"
                 , addCmd "clean"
+                , addCmd "sandbox"
                 , par
                 , startGroup "running and testing"
                 , addCmd "list-bin"

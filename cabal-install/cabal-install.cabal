@@ -104,6 +104,7 @@ library
         Distribution.Client.CmdOutdated
         Distribution.Client.CmdRepl
         Distribution.Client.CmdRun
+        Distribution.Client.CmdSandbox
         Distribution.Client.CmdSdist
         Distribution.Client.CmdTest
         Distribution.Client.CmdUpdate

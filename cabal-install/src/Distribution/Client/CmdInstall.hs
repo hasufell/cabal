@@ -19,6 +19,7 @@ module Distribution.Client.CmdInstall
   , establishDummyProjectBaseContext
   ) where
 
+import qualified Distribution.Client.CmdSandbox as Sandbox
 import Distribution.Client.Compat.Prelude
 import Distribution.Compat.Directory
   ( doesPathExist
@@ -238,6 +239,7 @@ import System.Directory
   , makeAbsolute
   , removeDirectory
   , removeFile
+  , getCurrentDirectory
   )
 import System.FilePath
   ( takeBaseName
@@ -742,7 +744,13 @@ getClientInstallFlags :: Verbosity -> GlobalFlags -> ClientInstallFlags -> IO Cl
 getClientInstallFlags verbosity globalFlags existingClientInstallFlags = do
   let configFileFlag = globalConfigFile globalFlags
   savedConfig <- loadConfig verbosity configFileFlag
-  pure $ savedClientInstallFlags savedConfig `mappend` existingClientInstallFlags
+  isSandbox <- Sandbox.isSandbox Nothing
+  let merged = savedClientInstallFlags savedConfig `mappend` existingClientInstallFlags
+  if isSandbox
+  then do
+    cwd <- getCurrentDirectory
+    pure $ merged { cinstEnvironmentPath = Flag cwd }
+  else pure $ merged
 
 getSpecsAndTargetSelectors
   :: Verbosity
