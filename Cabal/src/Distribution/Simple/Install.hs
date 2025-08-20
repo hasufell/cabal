@@ -24,6 +24,7 @@ module Distribution.Simple.Install
   , installFileGlob
   ) where
 
+import Distribution.Simple.Install.Internal
 import Distribution.Compat.Prelude
 import Prelude ()
 
@@ -46,7 +47,6 @@ import Distribution.Simple.Compiler
   )
 import Distribution.Simple.Glob (matchDirFileGlob)
 import Distribution.Simple.LocalBuildInfo
-import Distribution.Simple.Setup.Config
 import Distribution.Simple.Setup.Copy
   ( CopyFlags (..)
   )
@@ -343,30 +343,3 @@ installFileGlob verbosity spec_version mbWorkDir (srcDir, destDir) glob = do
     createDirectoryIfMissingVerbose verbosity True (takeDirectory dst)
     installOrdinaryFile verbosity src dst
 
--- | Install the files listed in install-includes for a library
-installIncludeFiles :: Verbosity -> BuildInfo -> LocalBuildInfo -> FilePath -> FilePath -> IO ()
-installIncludeFiles verbosity libBi lbi buildPref destIncludeDir = do
-  let relincdirs = sameDirectory : mapMaybe symbolicPathRelative_maybe (includeDirs libBi)
-      incdirs =
-        [ root </> getSymbolicPath dir
-        | -- NB: both baseDir and buildPref are already interpreted,
-        -- so we don't need to interpret these paths in the call to findInc.
-        dir <- relincdirs
-        , root <- [baseDir lbi, buildPref]
-        ]
-  incs <- traverse (findInc incdirs . getSymbolicPath) (installIncludes libBi)
-  sequence_
-    [ do
-      createDirectoryIfMissingVerbose verbosity True destDir
-      installOrdinaryFile verbosity srcFile destFile
-    | (relFile, srcFile) <- incs
-    , let destFile = destIncludeDir </> relFile
-          destDir = takeDirectory destFile
-    ]
-  where
-    baseDir lbi' = packageRoot $ configCommonFlags $ configFlags lbi'
-    findInc [] file = dieWithException verbosity $ CantFindIncludeFile file
-    findInc (dir : dirs) file = do
-      let path = dir </> file
-      exists <- doesFileExist path
-      if exists then return (file, path) else findInc dirs file

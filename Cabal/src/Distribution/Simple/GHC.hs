@@ -104,6 +104,7 @@ import Distribution.Simple.GHC.Build.Modules (BuildWay (..))
 import Distribution.Simple.GHC.Build.Utils
 import Distribution.Simple.GHC.EnvironmentParser
 import Distribution.Simple.GHC.ImplInfo
+import Distribution.Simple.Install.Internal (syncIncludeFiles)
 import qualified Distribution.Simple.GHC.Internal as Internal
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.PackageIndex (InstalledPackageIndex)
@@ -650,13 +651,20 @@ buildLib
   -> Library
   -> ComponentLocalBuildInfo
   -> IO ()
-buildLib flags numJobs pkg lbi lib clbi =
+buildLib flags numJobs pkg lbi lib clbi = do
   GHC.build numJobs pkg $
     PreBuildComponentInputs
       { buildingWhat = BuildNormal flags
       , localBuildInfo = lbi
       , targetInfo = TargetInfo clbi (CLib lib)
       }
+  -- After a build, we move 'install-headers' to the build artifact directory, so they're
+  -- in the same place as 'autogen-headers'... just like a proper installation would do.
+  -- Previously, the accumulation of headers from source and build artifact directory
+  -- was done during install. That caused issues with in-place builds: https://github.com/haskell/cabal/issues/11172
+  -- This is a stop-gap solution. Ultimately, we may want 'build' to be a subtype of 'install' with
+  -- the only difference being that 'install' actually merges the files to the store.
+  syncIncludeFiles normal (libBuildInfo lib) lbi (interpretSymbolicPathLBI lbi $ componentBuildDir lbi clbi)
 
 replLib
   :: ReplFlags

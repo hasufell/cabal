@@ -365,6 +365,7 @@ library
     Distribution.Simple.GHC.EnvironmentParser
     Distribution.Simple.GHC.Internal
     Distribution.Simple.GHC.ImplInfo
+    Distribution.Simple.Install.Internal
     Distribution.Simple.ConfigureScript
     Distribution.Simple.Setup.Benchmark
     Distribution.Simple.Setup.Build
